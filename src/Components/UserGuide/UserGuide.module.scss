@@ -3,20 +3,32 @@
   width: 100vw;
   position: fixed;
   inset: 0;
-  z-index: 5;
+  z-index: 900;
   background-color: rgba(0, 0, 0, 0.7);
+}
+.guidePointer {
+  height: 1px;
+  width: 1px;
+  border-right: 10px solid transparent;
+  border-left: 10px solid transparent;
+  border-bottom: 20px solid #fefefe;
+  position: absolute;
+  // background-color: red;
+  z-index: 998;
+  transition: all 1s;
 }
 .guideContainer {
   position: absolute;
   background-color: #fefefe;
   border-radius: 0.5rem;
-  z-index: 10;
+  z-index: 999;
   padding: 1rem;
   height: 350px;
   width: 350px;
   display: flex;
   flex-direction: column;
   transition: inset 1s;
+
   .closeIcon {
     height: 1rem;
     width: 1rem;

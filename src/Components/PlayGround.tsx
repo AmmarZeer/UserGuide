@@ -35,6 +35,7 @@ function PlayGround() {
         <UserGuide
           HTMLGuideElements={HTMLGuideElements}
           setHTMLGuideElements={setHTMLGuideElements}
+          spaceOffGuideElements={10}
         />
       )}
     </>
