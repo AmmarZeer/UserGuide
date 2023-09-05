@@ -1,0 +1,29 @@
+.wrapper {
+  height: 100vh;
+  background-color: red;
+  button {
+    padding: 1rem 2rem;
+    background-color: white;
+    position: fixed;
+    cursor: pointer;
+    &:hover {
+      background-color: yellow;
+    }
+  }
+  .b1 {
+    top: 10%;
+    left: 10%;
+  }
+  .b2 {
+    top: 10%;
+    right: 10%;
+  }
+  .b3 {
+    left: 10%;
+    top: 70%;
+  }
+  .b4 {
+    right: 10%;
+    top: 70%;
+  }
+}
