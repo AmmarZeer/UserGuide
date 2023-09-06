@@ -1,6 +1,7 @@
 import { CSSProperties, useEffect, useRef, useState } from "react";
-import { closeIcon, navigationVideo } from "../../assets";
+import { closeIcon } from "../../assets";
 import styles from "./UserGuide.module.scss";
+import { userGuideData } from "./userGuideData";
 interface UserGuideProps {
   HTMLGuideElements: HTMLElement[];
   setHTMLGuideElements: React.Dispatch<React.SetStateAction<HTMLElement[]>>;
@@ -9,6 +10,11 @@ interface UserGuideProps {
 interface UserGuidePosition {
   top: number;
   left: number;
+}
+
+interface Dimensions {
+  width: number;
+  height: number;
 }
 
 type GuideAttributePosition = "top" | "right" | "bottom" | "left";
@@ -20,9 +26,21 @@ function UserGuide({
 }: UserGuideProps) {
   const currentGuideElementIndex = useRef<number>(0);
   const originalGuideElementZIndex = useRef<string>("");
-  const guideAttributeRef = useRef<GuideAttributePosition | null>(null);
+  const elementAttributeRef = useRef<GuideAttributePosition | null>(null);
   const guidePointerRef = useRef<HTMLSpanElement>(null);
   const userGuideRef = useRef<HTMLDivElement>(null);
+
+  const [userGuideContent, setUserGuideContent] = useState<{
+    videoSrc: string;
+    content: string;
+  }>({
+    videoSrc: "",
+    content: "",
+  });
+  const [userGuideDimensions, setUserGuideDimensions] = useState<Dimensions>({
+    width: 0,
+    height: 0,
+  });
   const [userGuidePosition, setUserGuidePosition] = useState<UserGuidePosition>(
     {
       top: 0,
@@ -31,10 +49,31 @@ function UserGuide({
   );
 
   useEffect(() => {
+    if (!userGuideRef.current) return;
+    initiateObserver();
+    setUserGuideContent(
+      userGuideData[
+        getGuideElementKeyAttribute(currentGuideElementIndex.current)
+      ]
+    );
+  }, []);
+
+  useEffect(() => {
     setUserGuidePosition(
       getUserGuidePosition(currentGuideElementIndex.current)
     );
-  }, []);
+  }, [userGuideDimensions]);
+
+  function initiateObserver() {
+    const resizeObserver = new ResizeObserver((elements) => {
+      const observedDiv = elements[0];
+      setUserGuideDimensions({
+        width: observedDiv.borderBoxSize[0].inlineSize,
+        height: observedDiv.borderBoxSize[0].blockSize,
+      });
+    });
+    resizeObserver.observe(userGuideRef.current!);
+  }
 
   function saveGuideElementOriginalZIndex(elementIndex: number) {
     originalGuideElementZIndex.current =
@@ -136,25 +175,25 @@ function UserGuide({
 
     const currentGuideElementRect =
       HTMLGuideElements[elementIndex].getBoundingClientRect();
-    guideAttributeRef.current = HTMLGuideElements[elementIndex].getAttribute(
-      "data-userguide"
-    )! as GuideAttributePosition;
+    elementAttributeRef.current = getGuideElementPositionAttribute(
+      elementIndex
+    ) as GuideAttributePosition;
 
     const userGuidePosition: UserGuidePosition = {
       top: calculateUserGuideTopValue(
         currentGuideElementRect,
-        guideAttributeRef.current
+        elementAttributeRef.current
       ),
       left: calculateUserGuideLeftValue(
         currentGuideElementRect,
-        guideAttributeRef.current
+        elementAttributeRef.current
       ),
     };
 
     return userGuidePosition;
   }
 
-  function guidePointerStyles(): CSSProperties {
+  function getGuidePointerStyles(): CSSProperties {
     const currentHTMLElementRect =
       HTMLGuideElements[
         currentGuideElementIndex.current
@@ -166,7 +205,7 @@ function UserGuide({
       rotate: "0deg",
     };
     //the -1 in top and left cases are needed, otherwise the pointer will have space near the user guide
-    switch (guideAttributeRef.current) {
+    switch (elementAttributeRef.current) {
       case "top":
         pointerStyles.top =
           currentHTMLElementRect.top -
@@ -206,15 +245,30 @@ function UserGuide({
 
   function handleNextButton() {
     decreaseGuideElementZIndex(currentGuideElementIndex.current);
-    setUserGuidePosition(
-      getUserGuidePosition(++currentGuideElementIndex.current)
+    currentGuideElementIndex.current++;
+    const guideElementKeyAttribute = getGuideElementKeyAttribute(
+      currentGuideElementIndex.current
     );
+    setUserGuideContent(userGuideData[guideElementKeyAttribute]);
   }
+
   function handleBackButton() {
     decreaseGuideElementZIndex(currentGuideElementIndex.current);
-    setUserGuidePosition(
-      getUserGuidePosition(--currentGuideElementIndex.current)
+    currentGuideElementIndex.current--;
+    const guideElementKeyAttribute = getGuideElementKeyAttribute(
+      currentGuideElementIndex.current
     );
+    setUserGuideContent(userGuideData[guideElementKeyAttribute]);
+  }
+
+  function getGuideElementKeyAttribute(elementIndex: number): string {
+    return HTMLGuideElements[elementIndex].getAttribute("data-userguide-key")!;
+  }
+
+  function getGuideElementPositionAttribute(elementIndex: number): string {
+    return HTMLGuideElements[elementIndex].getAttribute(
+      "data-userguide-position"
+    )!;
   }
 
   return (
@@ -222,7 +276,7 @@ function UserGuide({
       <div className={styles.shadedBackground}></div>
       <span
         className={styles.guidePointer}
-        style={guidePointerStyles()}
+        style={getGuidePointerStyles()}
         ref={guidePointerRef}
       ></span>
       <div
@@ -237,14 +291,19 @@ function UserGuide({
           onClick={() => setHTMLGuideElements([])}
         />
         <div className={styles.instructionsContainer}>
-          <video width={350} height={234} autoPlay muted loop>
-            <source src={navigationVideo} />
+          <video
+            key={userGuideContent.videoSrc}
+            width={350}
+            height={234}
+            autoPlay
+            muted
+            loop
+          >
+            <source src={userGuideContent.videoSrc} />
           </video>
+
           <h2>Expose Service:</h2>
-          <p>
-            Integration microservices will be exposed ia Oracle Application
-            Gateway. Exposed Services are secured with keyCloak
-          </p>
+          <p>{userGuideContent.content}</p>
         </div>
         <div className={styles.footer}>
           {currentGuideElementIndex.current > 0 && (

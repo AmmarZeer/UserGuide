@@ -9,7 +9,7 @@ function PlayGround() {
     if (HTMLGuideElements.length === 0) {
       const HTMLElementsArray: HTMLElement[] = [];
       document
-        .querySelectorAll(`[data-userGuide]`)
+        .querySelectorAll(`[data-userguide-position]`)
         .forEach((el) => HTMLElementsArray.push(el as HTMLElement));
       setHTMLGuideElements([...HTMLElementsArray]);
     }
@@ -18,16 +18,32 @@ function PlayGround() {
   return (
     <>
       <div className={styles.wrapper}>
-        <button className={styles.b1} data-userguide="right">
+        <button
+          className={styles.b1}
+          data-userguide-key="button1"
+          data-userguide-position="right"
+        >
           0
         </button>
-        <button className={styles.b2} data-userguide="left">
+        <button
+          className={styles.b2}
+          data-userguide-key="button2"
+          data-userguide-position="left"
+        >
           1
         </button>
-        <button className={styles.b3} data-userguide="right">
+        <button
+          className={styles.b3}
+          data-userguide-key="button1"
+          data-userguide-position="right"
+        >
           2
         </button>
-        <button className={styles.b4} data-userguide="left">
+        <button
+          className={styles.b4}
+          data-userguide-key="button2"
+          data-userguide-position="left"
+        >
           3
         </button>
       </div>
