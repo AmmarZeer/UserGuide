@@ -23,7 +23,7 @@ function PlayGround() {
         <button
           className={styles.b3}
           data-userguide-order="2"
-          data-userguide-key="button1"
+          data-userguide-key="button3"
           data-userguide-position="right"
         >
           2
@@ -31,7 +31,7 @@ function PlayGround() {
         <button
           className={styles.b4}
           data-userguide-order="4"
-          data-userguide-key="button2"
+          data-userguide-key="button4"
           data-userguide-position="left"
         >
           3

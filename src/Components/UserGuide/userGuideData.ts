@@ -19,4 +19,14 @@ export const userGuideData: UserGuideData = {
     title: "",
     instructions: "hello",
   },
+  button3: {
+    videoSrc: fillerVideo,
+    title: "",
+    instructions: "hello",
+  },
+  button4: {
+    videoSrc: fillerVideo,
+    title: "",
+    instructions: "hello",
+  },
 };

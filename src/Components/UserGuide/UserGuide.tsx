@@ -1,4 +1,10 @@
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import {
+  CSSProperties,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { closeIcon } from "../../assets";
 import styles from "./UserGuide.module.scss";
 import { userGuideContent, userGuideData } from "./userGuideData";
@@ -42,25 +48,25 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
       left: 0,
     }
   );
-  console.log(HTMLGuideElements);
-  useEffect(() => {
+
+  useLayoutEffect(() => {
     //because it will run twice (strict mode)
     if (HTMLGuideElements.length === 0) {
       const HTMLElementsArray: HTMLElement[] = [];
       document
         .querySelectorAll(`[data-userguide-position]`)
         .forEach((el) => HTMLElementsArray.push(el as HTMLElement));
-      // HTMLElementsArray.sort(
-      //   (a, b) =>
-      //     parseInt(a.getAttribute("data-userguide-order")!) -
-      //     parseInt(b.getAttribute("data-userguide-order")!)
-      // );
-      setHTMLGuideElements([...HTMLElementsArray]);
+      HTMLElementsArray.sort(
+        (a, b) =>
+          parseInt(a.getAttribute("data-userguide-order")!) -
+          parseInt(b.getAttribute("data-userguide-order")!)
+      );
+      setHTMLGuideElements(HTMLElementsArray);
     }
   }, []);
 
   useEffect(() => {
-    if (!userGuideRef.current) return;
+    if (!userGuideRef.current || HTMLGuideElements.length === 0) return;
     initiateObserver();
     setUserGuideContent(
       userGuideData[
@@ -68,14 +74,15 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
       ]
     );
   }, [HTMLGuideElements]);
-  //probably need to add userGuideContent as a dependency
+
   useEffect(() => {
     //to prevent calling (getUserGuidePosition) which will call (saveGuideElementOriginalZIndex) which will make the first guided Element z-index to always be 999
-    if (userGuideDimensions.width === 0) return;
+    if (userGuideDimensions.width === 0 || userGuideContent.videoSrc == "")
+      return;
     setUserGuidePosition(
       getUserGuidePosition(currentGuideElementIndex.current)
     );
-  }, [userGuideDimensions]);
+  }, [userGuideContent]);
 
   function initiateObserver() {
     const resizeObserver = new ResizeObserver((elements) => {
