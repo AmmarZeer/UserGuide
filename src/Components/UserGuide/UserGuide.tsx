@@ -59,6 +59,8 @@ function UserGuide({
   }, []);
 
   useEffect(() => {
+    //to prevent calling (getUserGuidePosition) which will call (saveGuideElementOriginalZIndex) which will make the first guided Element z-index to always be 999
+    if (userGuideDimensions.width === 0) return;
     setUserGuidePosition(
       getUserGuidePosition(currentGuideElementIndex.current)
     );
