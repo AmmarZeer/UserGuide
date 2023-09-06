@@ -1,18 +1,22 @@
 import { fillerVideo, navigationVideo } from "../../assets";
-export interface UserGuideData {
-  [key: string]: {
-    videoSrc: string;
-    content: string;
-  };
+export interface userGuideContent {
+  videoSrc: string;
+  title: string;
+  instructions: string;
+}
+interface UserGuideData {
+  [key: string]: userGuideContent;
 }
 export const userGuideData: UserGuideData = {
   button1: {
     videoSrc: navigationVideo,
-    content:
+    title: "",
+    instructions:
       "Integration microservices will be exposed ia Oracle Applicatio Gateway. Exposed Services are secured with keyCloaksdf",
   },
   button2: {
     videoSrc: fillerVideo,
-    content: "hello",
+    title: "",
+    instructions: "hello",
   },
 };

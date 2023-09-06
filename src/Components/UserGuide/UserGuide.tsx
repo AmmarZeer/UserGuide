@@ -1,10 +1,8 @@
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { closeIcon } from "../../assets";
 import styles from "./UserGuide.module.scss";
-import { userGuideData } from "./userGuideData";
+import { userGuideContent, userGuideData } from "./userGuideData";
 interface UserGuideProps {
-  HTMLGuideElements: HTMLElement[];
-  setHTMLGuideElements: React.Dispatch<React.SetStateAction<HTMLElement[]>>;
   spaceOffGuideElements: number;
 }
 interface UserGuidePosition {
@@ -19,23 +17,20 @@ interface Dimensions {
 
 type GuideAttributePosition = "top" | "right" | "bottom" | "left";
 
-function UserGuide({
-  HTMLGuideElements,
-  setHTMLGuideElements,
-  spaceOffGuideElements,
-}: UserGuideProps) {
+function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
   const currentGuideElementIndex = useRef<number>(0);
   const originalGuideElementZIndex = useRef<string>("");
-  const elementAttributeRef = useRef<GuideAttributePosition | null>(null);
+  const elementPositionAttributeRef = useRef<GuideAttributePosition | null>(
+    null
+  );
   const guidePointerRef = useRef<HTMLSpanElement>(null);
   const userGuideRef = useRef<HTMLDivElement>(null);
 
-  const [userGuideContent, setUserGuideContent] = useState<{
-    videoSrc: string;
-    content: string;
-  }>({
+  const [HTMLGuideElements, setHTMLGuideElements] = useState<HTMLElement[]>([]);
+  const [userGuideContent, setUserGuideContent] = useState<userGuideContent>({
     videoSrc: "",
-    content: "",
+    title: "",
+    instructions: "",
   });
   const [userGuideDimensions, setUserGuideDimensions] = useState<Dimensions>({
     width: 0,
@@ -47,6 +42,22 @@ function UserGuide({
       left: 0,
     }
   );
+  console.log(HTMLGuideElements);
+  useEffect(() => {
+    //because it will run twice (strict mode)
+    if (HTMLGuideElements.length === 0) {
+      const HTMLElementsArray: HTMLElement[] = [];
+      document
+        .querySelectorAll(`[data-userguide-position]`)
+        .forEach((el) => HTMLElementsArray.push(el as HTMLElement));
+      // HTMLElementsArray.sort(
+      //   (a, b) =>
+      //     parseInt(a.getAttribute("data-userguide-order")!) -
+      //     parseInt(b.getAttribute("data-userguide-order")!)
+      // );
+      setHTMLGuideElements([...HTMLElementsArray]);
+    }
+  }, []);
 
   useEffect(() => {
     if (!userGuideRef.current) return;
@@ -56,8 +67,8 @@ function UserGuide({
         getGuideElementKeyAttribute(currentGuideElementIndex.current)
       ]
     );
-  }, []);
-
+  }, [HTMLGuideElements]);
+  //probably need to add userGuideContent as a dependency
   useEffect(() => {
     //to prevent calling (getUserGuidePosition) which will call (saveGuideElementOriginalZIndex) which will make the first guided Element z-index to always be 999
     if (userGuideDimensions.width === 0) return;
@@ -177,18 +188,18 @@ function UserGuide({
 
     const currentGuideElementRect =
       HTMLGuideElements[elementIndex].getBoundingClientRect();
-    elementAttributeRef.current = getGuideElementPositionAttribute(
+    elementPositionAttributeRef.current = getGuideElementPositionAttribute(
       elementIndex
     ) as GuideAttributePosition;
 
     const userGuidePosition: UserGuidePosition = {
       top: calculateUserGuideTopValue(
         currentGuideElementRect,
-        elementAttributeRef.current
+        elementPositionAttributeRef.current
       ),
       left: calculateUserGuideLeftValue(
         currentGuideElementRect,
-        elementAttributeRef.current
+        elementPositionAttributeRef.current
       ),
     };
 
@@ -207,7 +218,7 @@ function UserGuide({
       rotate: "0deg",
     };
     //the -1 in top and left cases are needed, otherwise the pointer will have space near the user guide
-    switch (elementAttributeRef.current) {
+    switch (elementPositionAttributeRef.current) {
       case "top":
         pointerStyles.top =
           currentHTMLElementRect.top -
@@ -273,6 +284,9 @@ function UserGuide({
     )!;
   }
 
+  //short circuit the component in case the querySelectorAll hasn't been run yet
+  if (HTMLGuideElements.length === 0) return <></>;
+
   return (
     <>
       <div className={styles.shadedBackground}></div>
@@ -305,7 +319,7 @@ function UserGuide({
           </video>
 
           <h2>Expose Service:</h2>
-          <p>{userGuideContent.content}</p>
+          <p>{userGuideContent.instructions}</p>
         </div>
         <div className={styles.footer}>
           {currentGuideElementIndex.current > 0 && (
