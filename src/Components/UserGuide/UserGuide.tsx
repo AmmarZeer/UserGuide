@@ -1,5 +1,5 @@
 import { CSSProperties, useEffect, useRef, useState } from "react";
-import { closeIcon } from "../../assets";
+import { closeIcon, navigationVideo } from "../../assets";
 import styles from "./UserGuide.module.scss";
 interface UserGuideProps {
   HTMLGuideElements: HTMLElement[];
@@ -219,7 +219,7 @@ function UserGuide({
 
   return (
     <>
-      <div className={styles.shadedBackground}></div>;
+      <div className={styles.shadedBackground}></div>
       <span
         className={styles.guidePointer}
         style={guidePointerStyles()}
@@ -237,8 +237,10 @@ function UserGuide({
           onClick={() => setHTMLGuideElements([])}
         />
         <div className={styles.instructionsContainer}>
-          <div>Video/GIF</div>
-          <h3>Expose Service:</h3>
+          <video width={350} height={234} autoPlay muted loop>
+            <source src={navigationVideo} />
+          </video>
+          <h2>Expose Service:</h2>
           <p>
             Integration microservices will be exposed ia Oracle Application
             Gateway. Exposed Services are secured with keyCloak

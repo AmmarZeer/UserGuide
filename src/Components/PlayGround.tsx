@@ -21,13 +21,13 @@ function PlayGround() {
         <button className={styles.b1} data-userguide="right">
           0
         </button>
-        <button className={styles.b2} data-userguide="right">
+        <button className={styles.b2} data-userguide="left">
           1
         </button>
         <button className={styles.b3} data-userguide="right">
           2
         </button>
-        <button className={styles.b4} data-userguide="right">
+        <button className={styles.b4} data-userguide="left">
           3
         </button>
       </div>
