@@ -14,11 +14,11 @@ export interface Dimensions {
 
 export type GuideAttributePosition = "top" | "right" | "bottom" | "left";
 
-export interface userGuideContent {
+export interface userGuideInstructions {
   videoSrc: string;
   title: string;
-  instructions: string;
+  description: string;
 }
 export interface UserGuideData {
-  [key: string]: userGuideContent;
+  [key: string]: userGuideInstructions;
 }

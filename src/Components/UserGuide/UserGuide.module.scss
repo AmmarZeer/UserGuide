@@ -39,13 +39,24 @@ $video-box-shadow: #00000026;
     margin-top: 1rem;
     height: 70%;
     max-width: 21.875rem;
-    video {
+    .instructionsVideo {
       border-radius: 0.5rem;
       box-shadow: 0 0rem 0.625rem $video-box-shadow;
     }
-    h2 {
+    .instructionsTitle {
       font-weight: 400;
-      margin-bottom: 0;
+      margin: 1rem 0;
+    }
+    .instructionsDescription {
+      font-size: 13px;
+      max-height: 9rem;
+      overflow: auto;
+      span {
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 0.5rem 0;
+      }
     }
   }
   .footer {

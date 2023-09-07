@@ -7,7 +7,7 @@ import {
   GuideAttributePosition,
   UserGuidePosition,
   UserGuideProps,
-  userGuideContent,
+  userGuideInstructions,
 } from "./userGuideInterfaces";
 
 function UserGuide({
@@ -23,11 +23,12 @@ function UserGuide({
   const userGuideRef = useRef<HTMLDivElement>(null);
 
   const [HTMLGuideElements, setHTMLGuideElements] = useState<HTMLElement[]>([]);
-  const [userGuideContent, setUserGuideContent] = useState<userGuideContent>({
-    videoSrc: "",
-    title: "",
-    instructions: "",
-  });
+  const [userGuideContent, setUserGuideContent] =
+    useState<userGuideInstructions>({
+      videoSrc: "",
+      title: "",
+      description: "",
+    });
   const [userGuideDimensions, setUserGuideDimensions] = useState<Dimensions>({
     width: 0,
     height: 0,
@@ -307,6 +308,7 @@ function UserGuide({
         />
         <div className={styles.instructionsContainer}>
           <video
+            className={styles.instructionsVideo}
             key={userGuideContent.videoSrc}
             width={350}
             height={234}
@@ -317,8 +319,11 @@ function UserGuide({
             <source src={userGuideContent.videoSrc} />
           </video>
 
-          <h2>Expose Service:</h2>
-          <p>{userGuideContent.instructions}</p>
+          <h2 className={styles.instructionsTitle}>{userGuideContent.title}</h2>
+          <div
+            className={styles.instructionsDescription}
+            dangerouslySetInnerHTML={{ __html: userGuideContent.description }}
+          ></div>
         </div>
         <div className={styles.footer}>
           {currentGuideElementIndex.current > 0 && (
