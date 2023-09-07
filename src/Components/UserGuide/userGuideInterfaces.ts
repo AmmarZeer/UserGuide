@@ -1,5 +1,6 @@
 export interface UserGuideProps {
   spaceOffGuideElements: number;
+  afterCloseAction: () => void;
 }
 export interface UserGuidePosition {
   top: number;

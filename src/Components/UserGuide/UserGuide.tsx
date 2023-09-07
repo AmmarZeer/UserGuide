@@ -10,7 +10,10 @@ import {
   userGuideContent,
 } from "./userGuideInterfaces";
 
-function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
+function UserGuide({
+  spaceOffGuideElements,
+  afterCloseAction,
+}: UserGuideProps) {
   const currentGuideElementIndex = useRef<number>(0);
   const originalGuideElementZIndex = useRef<string>("");
   const elementPositionAttributeRef = useRef<GuideAttributePosition | null>(
@@ -277,6 +280,7 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
   }
   function handleCloseGuide() {
     setHTMLGuideElements([]);
+    afterCloseAction();
   }
 
   //short circuit the component in case the querySelectorAll hasn't been run yet

@@ -37,7 +37,12 @@ function PlayGround() {
           3
         </button>
       </div>
-      <UserGuide spaceOffGuideElements={10} />
+      <UserGuide
+        spaceOffGuideElements={10}
+        afterCloseAction={() => {
+          console.log("closed");
+        }}
+      />
     </>
   );
 }
