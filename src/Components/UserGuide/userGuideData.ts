@@ -1,12 +1,6 @@
 import { fillerVideo, navigationVideo } from "../../assets";
-export interface userGuideContent {
-  videoSrc: string;
-  title: string;
-  instructions: string;
-}
-interface UserGuideData {
-  [key: string]: userGuideContent;
-}
+import { UserGuideData } from "./userGuideInterfaces";
+
 export const userGuideData: UserGuideData = {
   button1: {
     videoSrc: navigationVideo,
@@ -17,7 +11,9 @@ export const userGuideData: UserGuideData = {
   button2: {
     videoSrc: fillerVideo,
     title: "",
-    instructions: "hello",
+    instructions: `
+        1. Enterprise Integration Patterns: EI module supports multiple EIP,e.g. Content Based Router, Aggregator, Message filter etc.
+        2.Connectors (Components & Kamelets): Connectors offer services for messaging, sending data, notifications and various other services that can not only resolve easy messaging and transferring data but also provide securing of data.`,
   },
   button3: {
     videoSrc: fillerVideo,

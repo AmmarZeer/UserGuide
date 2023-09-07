@@ -1,27 +1,14 @@
-import {
-  CSSProperties,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import { closeIcon } from "../../assets";
 import styles from "./UserGuide.module.scss";
-import { userGuideContent, userGuideData } from "./userGuideData";
-interface UserGuideProps {
-  spaceOffGuideElements: number;
-}
-interface UserGuidePosition {
-  top: number;
-  left: number;
-}
-
-interface Dimensions {
-  width: number;
-  height: number;
-}
-
-type GuideAttributePosition = "top" | "right" | "bottom" | "left";
+import { userGuideData } from "./userGuideData";
+import {
+  Dimensions,
+  GuideAttributePosition,
+  UserGuidePosition,
+  UserGuideProps,
+  userGuideContent,
+} from "./userGuideInterfaces";
 
 function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
   const currentGuideElementIndex = useRef<number>(0);
@@ -49,7 +36,7 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
     }
   );
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     //because it will run twice (strict mode)
     if (HTMLGuideElements.length === 0) {
       const HTMLElementsArray: HTMLElement[] = [];
@@ -82,7 +69,7 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
     setUserGuidePosition(
       getUserGuidePosition(currentGuideElementIndex.current)
     );
-  }, [userGuideContent]);
+  }, [userGuideDimensions, userGuideContent]);
 
   function initiateObserver() {
     const resizeObserver = new ResizeObserver((elements) => {
@@ -118,7 +105,7 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
       case "top":
         userGuideTopPosition =
           currentRect.top -
-          userGuideRef.current?.getBoundingClientRect().height! -
+          userGuideDimensions.height -
           guidePointerRef.current?.getBoundingClientRect().height! -
           spaceOffGuideElements;
 
@@ -146,7 +133,7 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
       case "left":
         userGuideLeftPosition =
           currentRect.left -
-          userGuideRef.current?.getBoundingClientRect().width! -
+          userGuideDimensions.width -
           guidePointerRef.current?.getBoundingClientRect().height! -
           spaceOffGuideElements;
 
@@ -168,9 +155,7 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
     //off from the top of the screen
     if (topPosition < 0) return 0;
     const bottomOfScreenOffset =
-      topPosition +
-      userGuideRef.current?.getBoundingClientRect().height! -
-      window.innerHeight;
+      topPosition + userGuideDimensions.height - window.innerHeight;
     if (bottomOfScreenOffset > 0) {
       return topPosition - bottomOfScreenOffset;
     }
@@ -180,9 +165,7 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
   function fixUserGuideHorizontalOffset(leftPosition: number): number {
     if (leftPosition < 0) return 0;
     const rightSideOfScreenOffset =
-      leftPosition +
-      userGuideRef.current?.getBoundingClientRect().width! -
-      window.innerWidth;
+      leftPosition + userGuideDimensions.width - window.innerWidth;
     if (rightSideOfScreenOffset > 0) {
       return leftPosition - rightSideOfScreenOffset;
     }
@@ -190,7 +173,6 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
   }
 
   function getUserGuidePosition(elementIndex: number): UserGuidePosition {
-    saveGuideElementOriginalZIndex(elementIndex);
     increaseGuideElementZIndex(elementIndex);
 
     const currentGuideElementRect =
@@ -266,6 +248,8 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
   function handleNextButton() {
     decreaseGuideElementZIndex(currentGuideElementIndex.current);
     currentGuideElementIndex.current++;
+    saveGuideElementOriginalZIndex(currentGuideElementIndex.current);
+
     const guideElementKeyAttribute = getGuideElementKeyAttribute(
       currentGuideElementIndex.current
     );
@@ -275,6 +259,7 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
   function handleBackButton() {
     decreaseGuideElementZIndex(currentGuideElementIndex.current);
     currentGuideElementIndex.current--;
+    saveGuideElementOriginalZIndex(currentGuideElementIndex.current);
     const guideElementKeyAttribute = getGuideElementKeyAttribute(
       currentGuideElementIndex.current
     );
@@ -289,6 +274,9 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
     return HTMLGuideElements[elementIndex].getAttribute(
       "data-userguide-position"
     )!;
+  }
+  function handleCloseGuide() {
+    setHTMLGuideElements([]);
   }
 
   //short circuit the component in case the querySelectorAll hasn't been run yet
@@ -311,7 +299,7 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
           className={styles.closeIcon}
           src={closeIcon}
           alt="close icon"
-          onClick={() => setHTMLGuideElements([])}
+          onClick={handleCloseGuide}
         />
         <div className={styles.instructionsContainer}>
           <video
@@ -334,6 +322,10 @@ function UserGuide({ spaceOffGuideElements }: UserGuideProps) {
           )}
           {currentGuideElementIndex.current < HTMLGuideElements.length - 1 && (
             <button onClick={handleNextButton}>Next</button>
+          )}
+          {currentGuideElementIndex.current ===
+            HTMLGuideElements.length - 1 && (
+            <button onClick={handleCloseGuide}>Close</button>
           )}
         </div>
       </div>
