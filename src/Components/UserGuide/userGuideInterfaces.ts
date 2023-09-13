@@ -6,6 +6,9 @@ export interface UserGuidePosition {
   top: number;
   left: number;
 }
+export interface PointerPosition extends UserGuidePosition {
+  rotate: string;
+}
 
 export interface Dimensions {
   width: number;

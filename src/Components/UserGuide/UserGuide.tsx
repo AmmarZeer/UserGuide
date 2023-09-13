@@ -1,11 +1,12 @@
-//if the guide was on the right or on bottom we use -1 and if it was on the left or on the top we use +1 this is a safe value (making the guide go inside the pointer in 1 px) 
+//if the guide was on the right or on bottom we use -1 and if it was on the left or on the top we use +1 this is a safe value (making the guide go inside the pointer in 1 px)
 import { useEffect, useRef, useState } from "react";
-import { closeIcon } from "../../assets";
+import { closeIcon } from "../../assets/index";
 import styles from "./UserGuide.module.scss";
 import { userGuideData } from "./userGuideData";
 import {
   Dimensions,
   GuideAttributePosition,
+  PointerPosition,
   UserGuidePosition,
   UserGuideProps,
   userGuideInstructions,
@@ -40,11 +41,12 @@ function UserGuide({
       left: 0,
     }
   );
-  const [userGuidePointerStyles,setUserGuidePointerStyles] = useState<UserGuidePosition & {rotate:string}>({
-    top:0,
-    left:0,
-    rotate:"0"
-  })
+  const [userGuidePointerPosition, setUserGuidePointerPosition] =
+    useState<PointerPosition>({
+      top: 0,
+      left: 0,
+      rotate: "0",
+    });
 
   useEffect(() => {
     //because it will run twice (strict mode)
@@ -64,25 +66,29 @@ function UserGuide({
 
   useEffect(() => {
     if (!userGuideRef.current || HTMLGuideElements.length === 0) return;
-    const resizeObserver=createAndRunObserver();
+    const resizeObserver = createAndRunObserver();
     setUserGuideContent(
-      userGuideData[
-        getGuideElementKeyAttribute(currentGuideElementIndex.current)
-      ]
+      userGuideData[getGuideElementKeyAttribute(currentGuideElementIndex)]
     );
-    return ()=>{resizeObserver.disconnect()}
+    setElementPositionAttributeRef(currentGuideElementIndex.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, [HTMLGuideElements]);
 
   useEffect(() => {
-    //to prevent calling (getUserGuidePosition) which will call (saveGuideElementOriginalZIndex) which will make the first guided Element z-index to always be 999
-    if (userGuideDimensions.width === 0 || userGuideContent.videoSrc == "")
+    if (userGuideContent.videoSrc === "" || userGuideDimensions.width === 0)
       return;
+    setUserGuidePointerPosition(getGuidePointerPosition());
+  }, [userGuideContent, userGuideDimensions]);
 
+  useEffect(() => {
+    if (userGuideContent.videoSrc === "") return;
     setUserGuidePosition(
       getUserGuidePosition(currentGuideElementIndex.current)
     );
-    setUserGuidePointerStyles(getGuidePointerStyles())
-  }, [userGuideDimensions, userGuideContent]);
+  }, [userGuidePointerPosition]);
 
   function createAndRunObserver() {
     const resizeObserver = new ResizeObserver((elements) => {
@@ -93,7 +99,7 @@ function UserGuide({
       });
     });
     resizeObserver.observe(userGuideRef.current!);
-    return resizeObserver
+    return resizeObserver;
   }
 
   function saveGuideElementOriginalZIndex(elementIndex: number) {
@@ -111,55 +117,44 @@ function UserGuide({
   }
 
   function calculateUserGuideTopValue(
-    currentRect: DOMRect,
     positionAttribute: GuideAttributePosition
   ): number {
     let userGuideTopPosition = 0;
     switch (positionAttribute) {
       case "top":
         userGuideTopPosition =
-          currentRect.top -
-          userGuideDimensions.height -
-          guidePointerRef.current?.getBoundingClientRect().height! -
-          spaceOffGuideElements+1;
-
+          userGuidePointerPosition.top - userGuideDimensions.height;
         break;
       case "bottom":
         userGuideTopPosition =
-          currentRect.top +
-          currentRect.height +
-          guidePointerRef.current?.getBoundingClientRect().height! +
-          spaceOffGuideElements-1;
+          userGuidePointerPosition.top +
+          guidePointerRef.current?.getBoundingClientRect().height!;
         break;
       default:
-        userGuideTopPosition = currentRect.top;
+        userGuideTopPosition =
+          userGuidePointerPosition.top - userGuideDimensions.height / 2;
         break;
     }
     return fixUserGuideVerticalOffset(userGuideTopPosition);
   }
 
   function calculateUserGuideLeftValue(
-    currentRect: DOMRect,
     positionAttribute: GuideAttributePosition
   ): number {
     let userGuideLeftPosition = 0;
     switch (positionAttribute) {
       case "left":
         userGuideLeftPosition =
-          currentRect.left -
-          userGuideDimensions.width -
-          guidePointerRef.current?.getBoundingClientRect().width! -
-          spaceOffGuideElements+1;
-
+          userGuidePointerPosition.left - userGuideDimensions.width;
         break;
       case "right":
         userGuideLeftPosition =
-          currentRect.right +
-          guidePointerRef.current?.getBoundingClientRect().width! +
-          spaceOffGuideElements-1;
+          userGuidePointerPosition.left +
+          guidePointerRef.current?.getBoundingClientRect().width!;
         break;
       default:
-        userGuideLeftPosition = currentRect.left;
+        userGuideLeftPosition =
+          userGuidePointerPosition.left - userGuideDimensions.width / 2;
         break;
     }
     return fixUserGuideHorizontalOffset(userGuideLeftPosition);
@@ -189,32 +184,20 @@ function UserGuide({
   function getUserGuidePosition(elementIndex: number): UserGuidePosition {
     increaseGuideElementZIndex(elementIndex);
 
-    const currentGuideElementRect =
-      HTMLGuideElements[elementIndex].getBoundingClientRect();
-    elementPositionAttributeRef.current = getGuideElementPositionAttribute(
-      elementIndex
-    ) as GuideAttributePosition;
-
     const userGuidePosition: UserGuidePosition = {
-      top: calculateUserGuideTopValue(
-        currentGuideElementRect,
-        elementPositionAttributeRef.current
-      ),
-      left: calculateUserGuideLeftValue(
-        currentGuideElementRect,
-        elementPositionAttributeRef.current
-      ),
+      top: calculateUserGuideTopValue(elementPositionAttributeRef.current!),
+      left: calculateUserGuideLeftValue(elementPositionAttributeRef.current!),
     };
 
     return userGuidePosition;
   }
 
-  function getGuidePointerStyles() {
+  function getGuidePointerPosition() {
     const currentHTMLElementRect =
       HTMLGuideElements[
         currentGuideElementIndex.current
       ].getBoundingClientRect();
-    const pointerStyles = {
+    const pointerPosition = {
       top: 0,
       left: 0,
       rotate: "0deg",
@@ -222,47 +205,48 @@ function UserGuide({
     //the -1 in top and left cases are needed, otherwise the pointer will have space near the user guide
     switch (elementPositionAttributeRef.current) {
       case "top":
-        pointerStyles.top =
+        pointerPosition.top =
           currentHTMLElementRect.top -
           guidePointerRef.current?.getBoundingClientRect().height! -
           spaceOffGuideElements;
-        pointerStyles.left =
+        pointerPosition.left =
           currentHTMLElementRect.left + currentHTMLElementRect.width / 2;
-        pointerStyles.rotate = "180deg";
+        pointerPosition.rotate = "180deg";
         break;
       case "bottom":
-        pointerStyles.top =
+        pointerPosition.top =
           currentHTMLElementRect.bottom + spaceOffGuideElements;
-        pointerStyles.left =
+        pointerPosition.left =
           currentHTMLElementRect.left + currentHTMLElementRect.width / 2;
         break;
       case "right":
-        pointerStyles.top =
+        pointerPosition.top =
           currentHTMLElementRect.top + currentHTMLElementRect.height / 2;
-        pointerStyles.left =
+        pointerPosition.left =
           currentHTMLElementRect.right + spaceOffGuideElements;
-        pointerStyles.rotate = "-90deg";
+        pointerPosition.rotate = "-90deg";
         break;
       case "left":
-        pointerStyles.top =
+        pointerPosition.top =
           currentHTMLElementRect.top + currentHTMLElementRect.height / 2;
-        pointerStyles.left =
+        pointerPosition.left =
           currentHTMLElementRect.left -
           guidePointerRef.current?.getBoundingClientRect().height! -
           spaceOffGuideElements;
-        pointerStyles.rotate = "90deg";
+        pointerPosition.rotate = "90deg";
         break;
     }
-    return pointerStyles;
+    return pointerPosition;
   }
 
   function handleNextButton() {
     decreaseGuideElementZIndex(currentGuideElementIndex.current);
     currentGuideElementIndex.current++;
     saveGuideElementOriginalZIndex(currentGuideElementIndex.current);
+    setElementPositionAttributeRef(currentGuideElementIndex.current);
 
     const guideElementKeyAttribute = getGuideElementKeyAttribute(
-      currentGuideElementIndex.current
+      currentGuideElementIndex
     );
     setUserGuideContent(userGuideData[guideElementKeyAttribute]);
   }
@@ -271,24 +255,31 @@ function UserGuide({
     decreaseGuideElementZIndex(currentGuideElementIndex.current);
     currentGuideElementIndex.current--;
     saveGuideElementOriginalZIndex(currentGuideElementIndex.current);
+    setElementPositionAttributeRef(currentGuideElementIndex.current);
+
     const guideElementKeyAttribute = getGuideElementKeyAttribute(
-      currentGuideElementIndex.current
+      currentGuideElementIndex
     );
     setUserGuideContent(userGuideData[guideElementKeyAttribute]);
   }
 
-  function getGuideElementKeyAttribute(elementIndex: number): string {
-    return HTMLGuideElements[elementIndex].getAttribute("data-userguide-key")!;
-  }
-
-  function getGuideElementPositionAttribute(elementIndex: number): string {
-    return HTMLGuideElements[elementIndex].getAttribute(
-      "data-userguide-position"
+  function getGuideElementKeyAttribute(
+    elementIndexRef: React.MutableRefObject<number>
+  ): string {
+    return HTMLGuideElements[elementIndexRef.current].getAttribute(
+      "data-userguide-key"
     )!;
   }
+  function setElementPositionAttributeRef(elementIndex: number) {
+    elementPositionAttributeRef.current = HTMLGuideElements[
+      elementIndex
+    ].getAttribute("data-userguide-position")! as GuideAttributePosition;
+  }
+
   function handleCloseGuide() {
-    afterCloseAction();
+    decreaseGuideElementZIndex(currentGuideElementIndex.current);
     setHTMLGuideElements([]);
+    afterCloseAction();
   }
 
   //short circuit the component in case the querySelectorAll hasn't been run yet
@@ -299,7 +290,7 @@ function UserGuide({
       <div className={styles.shadedBackground}></div>
       <span
         className={styles.guidePointer}
-        style={userGuidePointerStyles}
+        style={userGuidePointerPosition}
         ref={guidePointerRef}
       ></span>
       <div
@@ -334,26 +325,14 @@ function UserGuide({
         </div>
         <div className={styles.footer}>
           {currentGuideElementIndex.current > 0 && (
-            <button
-              onClick={handleBackButton}
-            >
-              Back
-            </button>
+            <button onClick={handleBackButton}>Back</button>
           )}
           {currentGuideElementIndex.current < HTMLGuideElements.length - 1 && (
-            <button
-              onClick={handleNextButton}
-            >
-              Next
-            </button>
+            <button onClick={handleNextButton}>Next</button>
           )}
           {currentGuideElementIndex.current ===
             HTMLGuideElements.length - 1 && (
-            <button
-              onClick={handleCloseGuide}
-            >
-              Close
-            </button>
+            <button onClick={handleCloseGuide}>Close</button>
           )}
         </div>
       </div>
