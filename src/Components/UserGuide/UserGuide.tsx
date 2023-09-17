@@ -1,4 +1,3 @@
-//if the guide was on the right or on bottom we use -1 and if it was on the left or on the top we use +1 this is a safe value (making the guide go inside the pointer in 1 px)
 import { useEffect, useRef, useState } from "react";
 import { closeIcon } from "../../assets/index";
 import styles from "./UserGuide.module.scss";
@@ -15,6 +14,7 @@ import {
 function UserGuide({
   spaceOffGuideElements,
   afterCloseAction,
+  freeRoam = false,
 }: UserGuideProps) {
   const currentGuideElementIndex = useRef<number>(0);
   const originalGuideElementZIndex = useRef<string>("");
@@ -161,6 +161,7 @@ function UserGuide({
   }
 
   function fixUserGuideVerticalOffset(topPosition: number): number {
+    if (freeRoam) return topPosition;
     //off from the top of the screen
     if (topPosition < 0) return 0;
     const bottomOfScreenOffset =
@@ -172,6 +173,7 @@ function UserGuide({
   }
 
   function fixUserGuideHorizontalOffset(leftPosition: number): number {
+    if (freeRoam) return leftPosition;
     if (leftPosition < 0) return 0;
     const rightSideOfScreenOffset =
       leftPosition + userGuideDimensions.width - window.innerWidth;
