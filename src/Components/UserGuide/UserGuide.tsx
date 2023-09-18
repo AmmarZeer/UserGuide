@@ -5,6 +5,7 @@ import { userGuideData } from "./userGuideData";
 import {
   Dimensions,
   GuideAttributePosition,
+  GuideElementStyles,
   PointerPosition,
   UserGuidePosition,
   UserGuideProps,
@@ -17,7 +18,10 @@ function UserGuide({
   freeRoam = false,
 }: UserGuideProps) {
   const currentGuideElementIndex = useRef<number>(0);
-  const originalGuideElementZIndex = useRef<string>("");
+  const originalGuideElementStyles = useRef<GuideElementStyles>({
+    zIndex: "",
+    pointerEvents: "",
+  });
   const elementPositionAttributeRef = useRef<GuideAttributePosition | null>(
     null
   );
@@ -60,6 +64,12 @@ function UserGuide({
           parseInt(a.getAttribute("data-userguide-order")!) -
           parseInt(b.getAttribute("data-userguide-order")!)
       );
+      if (HTMLElementsArray.length > 0) {
+        originalGuideElementStyles.current = {
+          zIndex: HTMLElementsArray[0].style.zIndex,
+          pointerEvents: HTMLElementsArray[0].style.pointerEvents,
+        };
+      }
       setHTMLGuideElements(HTMLElementsArray);
     }
   }, []);
@@ -102,18 +112,23 @@ function UserGuide({
     return resizeObserver;
   }
 
-  function saveGuideElementOriginalZIndex(elementIndex: number) {
-    originalGuideElementZIndex.current =
-      HTMLGuideElements[elementIndex].style.zIndex;
+  function saveGuideElementOriginalStyles(elementIndex: number) {
+    originalGuideElementStyles.current = {
+      zIndex: HTMLGuideElements[elementIndex].style.zIndex,
+      pointerEvents: HTMLGuideElements[elementIndex].style.pointerEvents,
+    };
   }
 
-  function increaseGuideElementZIndex(elementIndex: number) {
+  function liftGuideElementToTopLayer(elementIndex: number) {
     HTMLGuideElements[elementIndex].style.zIndex = "999";
+    HTMLGuideElements[elementIndex].style.pointerEvents = "none";
   }
 
-  function decreaseGuideElementZIndex(elementIndex: number) {
+  function returnGuideElementToOriginalLayer(elementIndex: number) {
     HTMLGuideElements[elementIndex].style.zIndex =
-      originalGuideElementZIndex.current;
+      originalGuideElementStyles.current.zIndex;
+    HTMLGuideElements[elementIndex].style.pointerEvents =
+      originalGuideElementStyles.current.pointerEvents;
   }
 
   function calculateUserGuideTopValue(
@@ -184,7 +199,7 @@ function UserGuide({
   }
 
   function getUserGuidePosition(elementIndex: number): UserGuidePosition {
-    increaseGuideElementZIndex(elementIndex);
+    liftGuideElementToTopLayer(elementIndex);
 
     const userGuidePosition: UserGuidePosition = {
       top: calculateUserGuideTopValue(elementPositionAttributeRef.current!),
@@ -242,9 +257,9 @@ function UserGuide({
   }
 
   function handleNextButton() {
-    decreaseGuideElementZIndex(currentGuideElementIndex.current);
+    returnGuideElementToOriginalLayer(currentGuideElementIndex.current);
     currentGuideElementIndex.current++;
-    saveGuideElementOriginalZIndex(currentGuideElementIndex.current);
+    saveGuideElementOriginalStyles(currentGuideElementIndex.current);
     setElementPositionAttributeRef(currentGuideElementIndex.current);
 
     const guideElementKeyAttribute = getGuideElementKeyAttribute(
@@ -254,9 +269,9 @@ function UserGuide({
   }
 
   function handleBackButton() {
-    decreaseGuideElementZIndex(currentGuideElementIndex.current);
+    returnGuideElementToOriginalLayer(currentGuideElementIndex.current);
     currentGuideElementIndex.current--;
-    saveGuideElementOriginalZIndex(currentGuideElementIndex.current);
+    saveGuideElementOriginalStyles(currentGuideElementIndex.current);
     setElementPositionAttributeRef(currentGuideElementIndex.current);
 
     const guideElementKeyAttribute = getGuideElementKeyAttribute(
@@ -279,7 +294,7 @@ function UserGuide({
   }
 
   function handleCloseGuide() {
-    decreaseGuideElementZIndex(currentGuideElementIndex.current);
+    returnGuideElementToOriginalLayer(currentGuideElementIndex.current);
     setHTMLGuideElements([]);
     afterCloseAction();
   }

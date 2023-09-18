@@ -11,6 +11,11 @@ export interface PointerPosition extends UserGuidePosition {
   rotate: string;
 }
 
+export interface GuideElementStyles {
+  zIndex: string;
+  pointerEvents: string;
+}
+
 export interface Dimensions {
   width: number;
   height: number;
